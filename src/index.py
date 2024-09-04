@@ -22,17 +22,20 @@ def get_content(search_term:str, reference:str, date_from = "") -> dict:
     """
     date_from = date_from.replace("date_from", "from-date")
     url = f'https://content.guardianapis.com/search?q={search_term}&{date_from}&api-key={api_key}'
-    response = requests.get(url)
+    params = {
+        'show-fields': 'body'  # Include the article body in the response
+    }
+    response = requests.get(url, params=params)
     articles = response.json()["response"]["results"]
 
     my_articles = {reference :[]}
     for index,item in enumerate(articles):
         my_article = {'webPublicationDate' : articles[index]['webPublicationDate'],
                     'webTitle' : articles[index]['webTitle'],
-                    'webUrl' : articles[index]['webUrl']
+                    'webUrl' : articles[index]['webUrl'],
+                    'contentPreview' : articles[index]['fields']['body'][:1000]  # limit to first 1000 characters
                     }
         my_articles[reference].append(my_article)
-
     return my_articles
 
 
@@ -58,7 +61,7 @@ class KinesisPublisher:
 
 if __name__ == "__main__":
     kinesis_publisher = KinesisPublisher('the_guardian_articles')
-    message = get_content("home", "guardian_home_content", "date_from=2023-01-01")
+    message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
 
     reference = list(message)[0]
     for article in message[reference]:
