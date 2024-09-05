@@ -38,7 +38,7 @@ def get_content(search_term:str, reference:str, date_from = "") -> dict:
         my_articles[reference].append(my_article)
     return my_articles
 
-
+# Using AWS Kines as an alternative to AWS SQS
 class KinesisPublisher:
     def __init__(self, stream_name, region_name='eu-west-2'):
         self.stream_name = stream_name
@@ -59,12 +59,47 @@ class KinesisPublisher:
         return response
 
 
-if __name__ == "__main__":
-    kinesis_publisher = KinesisPublisher('the_guardian_articles')
-    message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
+class SQSPublisher:
+    def __init__(self, queue_url, region_name='eu-west-2'):
+        self.queue_url = queue_url
+        self.client = boto3.client('sqs', region_name=region_name)
 
-    reference = list(message)[0]
-    for article in message[reference]:
-        response = kinesis_publisher.publish_message(data=article, partition_key=reference)
-        print(response)
+    def publish_message(self, data, label):
+        """
+        Publishes a message to the SQS queue.
         
+        :param data: A dictionary containing the data to send.
+        """
+        response = self.client.send_message(
+            QueueUrl=self.queue_url,
+            MessageBody=json.dumps(data),
+            MessageAttributes={
+            'ID': {
+                'StringValue': label,
+                'DataType': 'String'
+                }
+            }
+        )
+        return response
+
+
+def lambda_handler(event, context):
+    # kinesis_publisher = KinesisPublisher('the_guardian_articles')
+    # message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
+
+    # reference = list(message)[0]
+    # for article in message[reference]:
+    #     response = kinesis_publisher.publish_message(data=article, partition_key=reference)
+    #     print(response)
+
+    sqs_publisher = SQSPublisher('https://sqs.eu-west-2.amazonaws.com/195275642800/the_guardian_articles')
+    message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
+    reference = list(message)[0]
+
+    for article in message[reference]:
+        response = sqs_publisher.publish_message(data=article, label=reference)
+        print(response)
+
+
+if __name__ == "__main__":
+    lambda_handler("test","context")
