@@ -1,2 +1,4 @@
 .env
 venv
+commands.bash
+response.json

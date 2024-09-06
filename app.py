@@ -92,8 +92,11 @@ def lambda_handler(event, context):
     #     response = kinesis_publisher.publish_message(data=article, partition_key=reference)
     #     print(response)
 
+    if 'date_from' not in event:    # Prevents app from crashing when no 'date_from' key is passed in the event
+        event['date_from'] = ""
+
     sqs_publisher = SQSPublisher('https://sqs.eu-west-2.amazonaws.com/195275642800/the_guardian_articles')
-    message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
+    message = get_content(event['search_term'], event['reference'], event['date_from'])
     reference = list(message)[0]
 
     for article in message[reference]:
@@ -102,4 +105,4 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    lambda_handler("test","context")
+    lambda_handler({"search_term": "tennis", "reference": "tennis_content", "date_from" : "date_from=2024-02-27"},"context")
