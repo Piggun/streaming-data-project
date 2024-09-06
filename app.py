@@ -22,12 +22,13 @@ def get_content(search_term:str, reference:str, date_from = "") -> dict:
     :param date_from: A `string` used to set the starting date from which to look for articles.
     """
     date_from = date_from.replace("date_from", "from-date")
-    url = f'https://content.guardianapis.com/search?q={search_term}&{date_from}&api-key={api_key}'
+    url = f'https://content.guardianapis.com/search?q={search_term}&{date_from}&order-by=newest&api-key={api_key}'
     params = {
-        'show-fields': 'body'  # Include the article body in the response
+        'show-fields': 'body',  # Include the article body in the response
     }
     response = requests.get(url, params=params)
     articles = response.json()["response"]["results"]
+    print(response.json())
 
     my_articles = {reference :[]}
     for index,item in enumerate(articles):
