@@ -4,6 +4,7 @@ import boto3
 import json
 from dotenv import load_dotenv
 import os
+import argparse
 
 load_dotenv()
 
@@ -105,4 +106,18 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    lambda_handler({"search_term": "tennis", "reference": "tennis_content", "date_from" : "date_from=2024-02-27"},"context")
+    parser = argparse.ArgumentParser(description="Fetches articles from the Guardian API and publish them to AWS SQS.")
+    
+    # Add arguments for search_term, date_from, and stream_name
+    parser.add_argument("--search_term", type=str, required=True, help="The search term for the Guardian API.")
+    parser.add_argument("--reference", type=str, required=True,  help="The reference label of the SQS message.")
+    parser.add_argument("--date_from", type=str, required=False, default="", help="The starting date for searching articles (format: date_from=YYYY-MM-DD).")
+
+    # Parse the arguments from the command line
+    args = parser.parse_args()
+
+    search_term = args.search_term
+    reference = args.reference
+    date_from = args.date_from
+
+    lambda_handler({"search_term": search_term, "reference": reference, "date_from" : date_from},"context")
