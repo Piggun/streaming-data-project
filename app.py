@@ -15,18 +15,23 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
     """
     Retrievs articles from The Guadian API.
 
-    Returns: A `dictionary` with the `reference` as the first `key` and a `list` of articles as its `pair`.
+    Returns: A `dictionary` with the `reference` as the first `key`
+    and a `list` of articles as its `pair`.
 
-    :param search_term: A `string` used to determine the type of articles you want to search for.
-    :param reference: A `string` used to set a reference to use for the message.
-    :param date_from: A `string` used to set the starting date from which to look for articles.
+    :param search_term: A `string` used to determine the type of
+    articles you want to search for.
+    :param reference: A `string` used to set a reference to use
+     for the message.
+    :param date_from: A `string` used to set the starting date from
+     which to look for articles.
     """
     date_from = date_from.replace("date_from", "from-date")
-    url = f"https://content.guardianapis.com/search?q={search_term}&{date_from}&order-by=newest&api-key={api_key}"
+    url = f"""https://content.guardianapis.com/search?q={search_term}&"
+    {date_from}&order-by=newest&api-key={api_key}"""
     params = {
         "show-fields": "body",  # Include the article body in the response
     }
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, timeout=5)
     articles = response.json()["response"]["results"]
 
     my_articles = {reference: []}
@@ -54,7 +59,8 @@ class KinesisPublisher:
         Publishes a message to the Kinesis stream.
 
         :param data: A `dictionary` containing the data to send.
-        :param partition_key: A `string` used to determine the shard to which the data record is assigned.
+        :param partition_key: A `string` used to determine the shard
+         to which the data record is assigned.
         """
         response = self.client.put_record(
             StreamName=self.stream_name,
@@ -86,17 +92,9 @@ class SQSPublisher:
 
 
 def lambda_handler(event, context):
-    # kinesis_publisher = KinesisPublisher('the_guardian_articles')
-    # message = get_content("tennis", "guardian_tennis_content", "date_from=2023-01-01")
-
-    # reference = list(message)[0]
-    # for article in message[reference]:
-    #     response = kinesis_publisher.publish_message(data=article, partition_key=reference)
-    #     print(response)
-
-    if (
-        "date_from" not in event
-    ):  # Prevents app from crashing when no 'date_from' key is passed in the event
+    # Prevents app from crashing when no 'date_from'
+    # key is passed in the event
+    if "date_from" not in event:
         event["date_from"] = ""
 
     sqs_publisher = SQSPublisher(sqs_url)
@@ -112,7 +110,8 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Fetches articles from the Guardian API and publish them to AWS SQS."
+        description="Fetches articles from the Guardian API and"
+        " publish them to AWS SQS."
     )
 
     # Add arguments for search_term, date_from, and stream_name
@@ -133,7 +132,8 @@ if __name__ == "__main__":
         type=str,
         required=False,
         default="",
-        help="The starting date for searching articles (format: date_from=YYYY-MM-DD).",
+        help="The starting date for searching articles"
+        " (format: date_from=YYYY-MM-DD).",
     )
 
     # Parse the arguments from the command line
