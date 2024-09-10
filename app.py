@@ -2,6 +2,7 @@ import requests
 import boto3
 import json
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 import argparse
 
@@ -9,7 +10,40 @@ load_dotenv()
 
 api_key = os.getenv("API_KEY")
 sqs_url = os.getenv("SQS_URL")
+requests_limit = 50
 
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('RequestCounter')
+
+def get_request_count():
+    # Get today's date
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    # Try to get the count for today from DynamoDB
+    response = table.get_item(Key={'Date': "today"})
+    return response.get('Item', {}).get('Count', 0)
+
+def increment_request_count():
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    # Increment the counter for today
+    table.update_item(
+        Key={'Date': today},
+        UpdateExpression="ADD #count :inc",
+        ExpressionAttributeNames={'#count': 'Count'},
+        ExpressionAttributeValues={':inc': 1},
+        ReturnValues="UPDATED_NEW"
+    )
+
+def can_make_request():
+    request_count = get_request_count()
+
+    if request_count < requests_limit:
+        increment_request_count()
+        return True
+    else:
+        return False
+    
 
 def get_content(search_term: str, reference: str, date_from="") -> dict:
     """
@@ -92,21 +126,24 @@ class SQSPublisher:
 
 
 def lambda_handler(event, context):
-    # Prevents app from crashing when no 'date_from'
-    # key is passed in the event
-    if "date_from" not in event:
-        event["date_from"] = ""
 
-    sqs_publisher = SQSPublisher(sqs_url)
-    message = get_content(
-        event["search_term"], event["reference"], event["date_from"]
-    )
-    reference = list(message)[0]
+    if can_make_request():
+        # Prevents app from crashing when no 'date_from'
+        # key is passed in the event
+        if "date_from" not in event:
+            event["date_from"] = ""
 
-    for article in message[reference]:
-        response = sqs_publisher.publish_message(data=article, label=reference)
-        print(response)
+        sqs_publisher = SQSPublisher(sqs_url)
+        message = get_content(
+            event["search_term"], event["reference"], event["date_from"]
+        )
+        reference = list(message)[0]
 
+        for article in message[reference]:
+            response = sqs_publisher.publish_message(data=article, label=reference)
+            print(response)
+    else:
+        print(f"Limit of {requests_limit} requests per day reached, try again tomorrow.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
