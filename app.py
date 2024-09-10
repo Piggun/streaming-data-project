@@ -3,6 +3,7 @@ import boto3
 import json
 from dotenv import load_dotenv
 from datetime import datetime
+from botocore.exceptions import BotoCoreError, ClientError
 import os
 import argparse
 
@@ -12,38 +13,52 @@ api_key = os.getenv("API_KEY")
 sqs_url = os.getenv("SQS_URL")
 requests_limit = 50
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('RequestCounter')
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("RequestCounter")
+
 
 def get_request_count():
-    # Get today's date
-    today = datetime.now().strftime('%Y-%m-%d')
+    try:
+        # Get today's date
+        today = datetime.now().strftime("%Y-%m-%d")
 
-    # Try to get the count for today from DynamoDB
-    response = table.get_item(Key={'Date': "today"})
-    return response.get('Item', {}).get('Count', 0)
+        # Try to get the count for today from DynamoDB
+        response = table.get_item(Key={"Date": today})
+        return response.get("Item", {}).get("Count", 0)
+    except ClientError as e:
+        print(f"Error fetching request count from DynamoDB: {e}")
+        return 0
+
 
 def increment_request_count():
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = datetime.now().strftime("%Y-%m-%d")
 
-    # Increment the counter for today
-    table.update_item(
-        Key={'Date': today},
-        UpdateExpression="ADD #count :inc",
-        ExpressionAttributeNames={'#count': 'Count'},
-        ExpressionAttributeValues={':inc': 1},
-        ReturnValues="UPDATED_NEW"
-    )
+    try:
+        # Increment the counter for today
+        table.update_item(
+            Key={"Date": today},
+            UpdateExpression="ADD #count :inc",
+            ExpressionAttributeNames={"#count": "Count"},
+            ExpressionAttributeValues={":inc": 1},
+            ReturnValues="UPDATED_NEW",
+        )
+    except ClientError as e:
+        print(f"Error incrementing request count in DynamoDB: {e}")
+
 
 def can_make_request():
-    request_count = get_request_count()
+    try:
+        request_count = get_request_count()
 
-    if request_count < requests_limit:
-        increment_request_count()
-        return True
-    else:
+        if request_count < requests_limit:
+            increment_request_count()
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"Error checking request limit: {e}")
         return False
-    
+
 
 def get_content(search_term: str, reference: str, date_from="") -> dict:
     """
@@ -59,27 +74,34 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
     :param date_from: A `string` used to set the starting date from
      which to look for articles.
     """
-    date_from = date_from.replace("date_from", "from-date")
-    url = f"""https://content.guardianapis.com/search?q={search_term}&"
-    {date_from}&order-by=newest&api-key={api_key}"""
-    params = {
-        "show-fields": "body",  # Include the article body in the response
-    }
-    response = requests.get(url, params=params, timeout=5)
-    articles = response.json()["response"]["results"]
-
-    my_articles = {reference: []}
-    for index, item in enumerate(articles):
-        my_article = {
-            "webPublicationDate": articles[index]["webPublicationDate"],
-            "webTitle": articles[index]["webTitle"],
-            "webUrl": articles[index]["webUrl"],
-            "contentPreview": articles[index]["fields"]["body"][
-                :1000
-            ],  # limit to first 1000 characters
+    try:
+        date_from = date_from.replace("date_from", "from-date")
+        url = f"""https://content.guardianapis.com/search?q={search_term}&"
+        {date_from}&order-by=newest&api-key={api_key}"""
+        params = {
+            "show-fields": "body",  # Include the article body in the response
         }
-        my_articles[reference].append(my_article)
-    return my_articles
+        response = requests.get(url, params=params, timeout=5)
+        articles = response.json()["response"]["results"]
+
+        my_articles = {reference: []}
+        for index, item in enumerate(articles):
+            my_article = {
+                "webPublicationDate": articles[index]["webPublicationDate"],
+                "webTitle": articles[index]["webTitle"],
+                "webUrl": articles[index]["webUrl"],
+                "contentPreview": articles[index]["fields"]["body"][
+                    :1000
+                ],  # limit to first 1000 characters
+            }
+            my_articles[reference].append(my_article)
+        return my_articles
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching content from The Guardian API: {e}")
+        return {}
+    except KeyError as e:
+        print(f"Error processing article data: Missing key {e}")
+        return {}
 
 
 # Using AWS Kines as an alternative to AWS SQS
@@ -96,12 +118,15 @@ class KinesisPublisher:
         :param partition_key: A `string` used to determine the shard
          to which the data record is assigned.
         """
-        response = self.client.put_record(
-            StreamName=self.stream_name,
-            Data=json.dumps(data),
-            PartitionKey=partition_key,
-        )
-        return response
+        try:
+            response = self.client.put_record(
+                StreamName=self.stream_name,
+                Data=json.dumps(data),
+                PartitionKey=partition_key,
+            )
+            return response
+        except (BotoCoreError, ClientError) as e:
+            print(f"Error publishing message to Kinesis: {e}")
 
 
 class SQSPublisher:
@@ -115,35 +140,46 @@ class SQSPublisher:
 
         :param data: A dictionary containing the data to send.
         """
-        response = self.client.send_message(
-            QueueUrl=self.queue_url,
-            MessageBody=json.dumps(data),
-            MessageAttributes={
-                "ID": {"StringValue": label, "DataType": "String"}
-            },
-        )
-        return response
+        try:
+            response = self.client.send_message(
+                QueueUrl=self.queue_url,
+                MessageBody=json.dumps(data),
+                MessageAttributes={
+                    "ID": {"StringValue": label, "DataType": "String"}
+                },
+            )
+            return response
+        except (BotoCoreError, ClientError) as e:
+            print(f"Error publishing message to SQS: {e}")
 
 
 def lambda_handler(event, context):
+    try:
+        if can_make_request():
+            # Prevents app from crashing when no 'date_from'
+            # key is passed in the event
+            if "date_from" not in event:
+                event["date_from"] = ""
 
-    if can_make_request():
-        # Prevents app from crashing when no 'date_from'
-        # key is passed in the event
-        if "date_from" not in event:
-            event["date_from"] = ""
+            sqs_publisher = SQSPublisher(sqs_url)
+            message = get_content(
+                event["search_term"], event["reference"], event["date_from"]
+            )
+            reference = list(message)[0]
 
-        sqs_publisher = SQSPublisher(sqs_url)
-        message = get_content(
-            event["search_term"], event["reference"], event["date_from"]
-        )
-        reference = list(message)[0]
+            for article in message[reference]:
+                response = sqs_publisher.publish_message(
+                    data=article, label=reference
+                )
+                print(response)
+        else:
+            print(
+                f"Limit of {requests_limit} requests per day reached, "
+                "try again tomorrow."
+            )
+    except Exception as e:
+        print(f"Error in lambda_handler: {e}")
 
-        for article in message[reference]:
-            response = sqs_publisher.publish_message(data=article, label=reference)
-            print(response)
-    else:
-        print(f"Limit of {requests_limit} requests per day reached, try again tomorrow.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
