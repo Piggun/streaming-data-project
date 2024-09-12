@@ -82,6 +82,13 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
             "show-fields": "body",  # Include the article body in the response
         }
         response = requests.get(url, params=params, timeout=5)
+        print(response.status_code)
+        if response.status_code != 200:
+            raise Exception(f"Error: Received status code {response.status_code} from Guardian API")
+        
+        if "response" not in response.json():
+            raise KeyError("'response' key not found in the API response")
+
         articles = response.json()["response"]["results"]
 
         my_articles = {reference: []}

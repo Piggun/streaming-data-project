@@ -2,3 +2,4 @@
 venv
 commands.bash
 response.json
+__pycache__
