@@ -99,6 +99,87 @@ class TestMyModule(unittest.TestCase):
 
         self.assertEqual(result, {})
 
+    @patch('boto3.client')
+    def test_kinesis_publisher_success(self, mock_boto_client):
+        """Test that KinesisPublisher.publish_message works correctly"""
+        mock_kinesis_client = MagicMock()
+        mock_kinesis_client.put_record.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+        
+        mock_boto_client.return_value = mock_kinesis_client
+
+        publisher = KinesisPublisher("test_stream")
+
+        response = publisher.publish_message({"message": "test"}, "test_key")
+        
+        self.assertEqual(response["ResponseMetadata"]["HTTPStatusCode"], 200)
+        mock_kinesis_client.put_record.assert_called_once_with(
+            StreamName="test_stream",
+            Data='{"message": "test"}',
+            PartitionKey="test_key"
+        )
+
+    @patch('boto3.client')
+    def test_kinesis_publisher_failure(self, mock_boto_client):
+        """Test that KinesisPublisher.publish_message handles error correctly"""
+        mock_kinesis_client = MagicMock()
+        mock_kinesis_client.put_record.side_effect = Exception("Test Error")
+
+        mock_boto_client.return_value = mock_kinesis_client
+
+        publisher = KinesisPublisher("test_stream")
+
+        with patch('builtins.print') as mocked_print:
+            publisher.publish_message({"message": "test"}, "test_key")
+            mocked_print.assert_called_with("Error publishing message to Kinesis: Test Error")
+
+    @patch('boto3.client')
+    def test_sqs_publisher_success(self, mock_boto_client):
+        """Test that SQSPublisher.publish_message works correctly"""
+        mock_sqs_client = MagicMock()
+        mock_sqs_client.send_message.return_value = {"MessageId": "1234"}
+        
+        mock_boto_client.return_value = mock_sqs_client
+
+        publisher = SQSPublisher("dummy_sqs_url")
+
+        response = publisher.publish_message({"message": "test"}, "test_label")
+        
+        self.assertEqual(response["MessageId"], "1234")
+        mock_sqs_client.send_message.assert_called_once_with(
+            QueueUrl="dummy_sqs_url",
+            MessageBody='{"message": "test"}',
+            MessageAttributes={
+                "ID": {"StringValue": "test_label", "DataType": "String"}
+            }
+        )
+
+    @patch('boto3.client')
+    def test_sqs_publisher_failure(self, mock_boto_client):
+        """Test that SQSPublisher.publish_message handles error correctly"""
+        mock_sqs_client = MagicMock()
+        mock_sqs_client.send_message.side_effect = Exception("Test Error")
+
+        mock_boto_client.return_value = mock_sqs_client
+
+        publisher = SQSPublisher("dummy_sqs_url")
+
+        with patch('builtins.print') as mocked_print:
+            publisher.publish_message({"message": "test"}, "test_label")
+
+            mocked_print.assert_called_with("Error publishing message to SQS: Test Error")
+
+    @patch('app.can_make_request', return_value=False)
+    def test_lambda_handler_request_limit_reached(self, mock_can_make_request):
+        """Test that can_make_request works correctly"""
+        event = {
+            "search_term": "test_term",
+            "reference": "test_reference",
+            "date_from": "2023-09-12"
+        }
+        
+        with patch('builtins.print') as mocked_print:
+            lambda_handler(event, "context")
+            mocked_print.assert_called_with("Limit of 50 requests per day reached, try again tomorrow.")
 
 if __name__ == '__main__':
     unittest.main()

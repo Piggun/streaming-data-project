@@ -132,7 +132,7 @@ class KinesisPublisher:
                 PartitionKey=partition_key,
             )
             return response
-        except (BotoCoreError, ClientError) as e:
+        except Exception as e:
             print(f"Error publishing message to Kinesis: {e}")
 
 
@@ -156,7 +156,7 @@ class SQSPublisher:
                 },
             )
             return response
-        except (BotoCoreError, ClientError) as e:
+        except Exception as e:
             print(f"Error publishing message to SQS: {e}")
 
 
