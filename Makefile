@@ -13,3 +13,9 @@ run-black:
 run-flake8:
 	@echo "Running flake8.."
 	flake8 app.py
+
+zip-lambda:
+	mkdir my_lambda_project && cd my_lambda_project &&\
+	pip install --target ./package boto3 requests python-dotenv && cd package &&\
+	zip -r ../lambda_function.zip . && cd .. &&\
+	zip -g lambda_function.zip ../app.py
