@@ -1,3 +1,7 @@
+run-unit-tests:
+	@echo "Running unit-tests.."
+	PYTHONPATH=$(shell pwd) pytest -v
+
 run-security-checks:
 	@echo "Running security checks.."
 	bandit app.py

@@ -3,7 +3,7 @@ import boto3
 import json
 from dotenv import load_dotenv
 from datetime import datetime
-from botocore.exceptions import BotoCoreError, ClientError
+from botocore.exceptions import ClientError
 import os
 import argparse
 
@@ -65,7 +65,7 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
     Retrievs articles from The Guadian API.
 
     Returns: A `dictionary` with the `reference` as the first `key`
-    and a `list` of articles as its `pair`.
+    and a `list` of articles as its `value`.
 
     :param search_term: A `string` used to determine the type of
     articles you want to search for.
@@ -76,16 +76,20 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
     """
     try:
         date_from = date_from.replace("date_from", "from-date")
-        url = f"""https://content.guardianapis.com/search?q={search_term}&"
-        {date_from}&order-by=newest&api-key={api_key}"""
+        url = (
+            f"https://content.guardianapis.com/search?q="
+            f"{search_term}&{date_from}&api-key={api_key}"
+            )
         params = {
             "show-fields": "body",  # Include the article body in the response
         }
         response = requests.get(url, params=params, timeout=5)
-        print(response.status_code)
         if response.status_code != 200:
-            raise Exception(f"Error: Received status code {response.status_code} from Guardian API")
-        
+            raise Exception(
+                f"Error: Received status code {response.status_code}"
+                " from Guardian API"
+            )
+
         if "response" not in response.json():
             raise KeyError("'response' key not found in the API response")
 
@@ -175,10 +179,11 @@ def lambda_handler(event, context):
             reference = list(message)[0]
 
             for article in message[reference]:
-                response = sqs_publisher.publish_message(
+                sqs_publisher.publish_message(
                     data=article, label=reference
                 )
-                print(response)
+            print("The retrieved articles have been published "
+                  "to AWS SQS!")
         else:
             print(
                 f"Limit of {requests_limit} requests per day reached, "

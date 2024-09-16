@@ -17,6 +17,7 @@ class TestMyModule(unittest.TestCase):
     
     @patch('app.table.get_item')
     def test_get_request_count_success(self, mock_get_item):
+        """Test that get_request_count returns the correct count"""
         mock_get_item.return_value = {'Item': {'Count': 10}}
         
         count = get_request_count()
