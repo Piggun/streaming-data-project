@@ -79,7 +79,7 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
         url = (
             f"https://content.guardianapis.com/search?q="
             f"{search_term}&{date_from}&api-key={api_key}"
-            )
+        )
         params = {
             "show-fields": "body",  # Include the article body in the response
         }
@@ -179,11 +179,8 @@ def lambda_handler(event, context):
             reference = list(message)[0]
 
             for article in message[reference]:
-                sqs_publisher.publish_message(
-                    data=article, label=reference
-                )
-            print("The retrieved articles have been published "
-                  "to AWS SQS!")
+                sqs_publisher.publish_message(data=article, label=reference)
+            print("The retrieved articles have been published to AWS SQS!")
         else:
             print(
                 f"Limit of {requests_limit} requests per day reached, "

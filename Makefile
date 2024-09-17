@@ -16,6 +16,15 @@ run-flake8:
 
 zip-lambda:
 	mkdir my_lambda_project && cd my_lambda_project &&\
-	pip install --target ./package boto3 requests python-dotenv && cd package &&\
+	pip install --target ./package -r ../main-requirements.txt && cd package &&\
 	zip -r ../lambda_function.zip . && cd .. &&\
 	zip -g lambda_function.zip ../app.py
+
+create-environment:
+	python -m venv venv
+	@echo "\nVirtual environment has been created, \
+	run the following command to activate it:\n\n\
+	source venv/bin/activate"
+
+install-dependencies:
+	pip install -r ./requirements.txt
