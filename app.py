@@ -9,9 +9,9 @@ import argparse
 
 load_dotenv()
 
-api_key = os.getenv("API_KEY")
-sqs_url = os.getenv("SQS_URL")
-requests_limit = 50
+API_KEY = os.getenv("API_KEY")
+SQS_URL = os.getenv("SQS_URL")
+REQUEST_LIMIT = 50
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("RequestCounter")
@@ -50,7 +50,7 @@ def can_make_request():
     try:
         request_count = get_request_count()
 
-        if request_count < requests_limit:
+        if request_count < REQUEST_LIMIT:
             increment_request_count()
             return True
         else:
@@ -78,7 +78,7 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
         date_from = date_from.replace("date_from", "from-date")
         url = (
             f"https://content.guardianapis.com/search?q="
-            f"{search_term}&{date_from}&api-key={api_key}"
+            f"{search_term}&{date_from}&api-key={API_KEY}"
         )
         params = {
             "show-fields": "body",  # Include the article body in the response
@@ -172,7 +172,7 @@ def lambda_handler(event, context):
             if "date_from" not in event:
                 event["date_from"] = ""
 
-            sqs_publisher = SQSPublisher(sqs_url)
+            sqs_publisher = SQSPublisher(SQS_URL)
             message = get_content(
                 event["search_term"], event["reference"], event["date_from"]
             )
@@ -183,7 +183,7 @@ def lambda_handler(event, context):
             print("The retrieved articles have been published to AWS SQS!")
         else:
             print(
-                f"Limit of {requests_limit} requests per day reached, "
+                f"Limit of {REQUEST_LIMIT} requests per day reached, "
                 "try again tomorrow."
             )
     except Exception as e:
@@ -221,15 +221,15 @@ if __name__ == "__main__":
     # Parse the arguments from the command line
     args = parser.parse_args()
 
-    search_term = args.search_term
-    reference = args.reference
-    date_from = args.date_from
+    SEARCH_TERM = args.search_term
+    REFERENCE = args.reference
+    DATE_FROM = args.date_from
 
     lambda_handler(
         {
-            "search_term": search_term,
-            "reference": reference,
-            "date_from": date_from,
+            "search_term": SEARCH_TERM,
+            "reference": REFERENCE,
+            "date_from": DATE_FROM,
         },
         "context",
     )
