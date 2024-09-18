@@ -66,5 +66,12 @@ To visualize the data:
 - **From the terminal**:
      - Run `aws sqs receive-message --queue-url [Your-Queue-URL-here] --max-number-of-messages 10`
      - More informations can be found [here](https://docs.aws.amazon.com/cli/latest/reference/sqs/receive-message.html)
-  
 
+## Makefile commands
+- `make run-unit-tests` : Runs unit-tests, checking that every function behaves correctly
+- `make run-security-checks` : Scans for security issues
+- `make run-black` : Formats code
+- `make run-flake8` : Checks if the code is PEP-8 compliant
+- `make zip-lambda` : Zips the app along with its dependencies, useful if you want to upload the function to AWS Lambda
+- `make create-environment` : Creates a virtual environment
+- `make install-dependencies` : Install all the dependencies listed in requirements.txt
