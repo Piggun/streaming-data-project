@@ -75,11 +75,12 @@ def get_content(search_term: str, reference: str, date_from="") -> dict:
      which to look for articles.
     """
     try:
-        date_from = date_from.replace("date_from", "from-date")
         url = (
             f"https://content.guardianapis.com/search?q="
-            f"{search_term}&{date_from}&api-key={API_KEY}"
+            f"{search_term}&api-key={API_KEY}"
         )
+        if date_from != "":
+            url += f"&from-date={date_from}"
         params = {
             "show-fields": "body",  # Include the article body in the response
         }
@@ -215,7 +216,7 @@ if __name__ == "__main__":
         required=False,
         default="",
         help="The starting date for searching articles"
-        " (format: date_from=YYYY-MM-DD).",
+        " (format: YYYY-MM-DD).",
     )
 
     # Parse the arguments from the command line
