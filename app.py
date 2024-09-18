@@ -163,6 +163,7 @@ class SQSPublisher:
             return response
         except Exception as e:
             print(f"Error publishing message to SQS: {e}")
+            raise e
 
 
 def lambda_handler(event, context):

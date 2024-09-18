@@ -1,6 +1,7 @@
 import requests
 import unittest
 from unittest.mock import patch, MagicMock
+import pytest
 from app import (
     get_request_count,
     increment_request_count,
@@ -163,11 +164,8 @@ class TestMyModule(unittest.TestCase):
         mock_boto_client.return_value = mock_sqs_client
 
         publisher = SQSPublisher("dummy_sqs_url")
-
-        with patch('builtins.print') as mocked_print:
-            publisher.publish_message({"message": "test"}, "test_label")
-
-            mocked_print.assert_called_with("Error publishing message to SQS: Test Error")
+        with self.assertRaises(Exception):
+            publisher.publish_message({"key": "value"}, "test_label")
 
     @patch('app.can_make_request', return_value=False)
     def test_lambda_handler_request_limit_reached(self, mock_can_make_request):
