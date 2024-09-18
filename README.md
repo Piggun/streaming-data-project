@@ -11,7 +11,7 @@ You will need:
 **Optionally** you will need to create an Amazon DynamoDB table (instructions [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html)) in case you want to be able to track the API usage and limit its requests available per day.
 &rarr; ***This is optional and it is <ins>NOT</ins> required, the application will work regardless.***
 ## Local Setup
-Use the following instructions to correctly set up the environment to be able to use the application.
+Use the following instructions to correctly set up the environment in order to use the application.
 1. Run `git clone https://github.com/Piggun/streaming-data-project.git` in your terminal, to clone the repo at your desired location
 2. Run `cd streaming-data-project` to move inside the repo's root folder
 3. Run `make create-environment` to create a virtual environment in which to install dependencies
@@ -27,7 +27,7 @@ Once you have run the above commands you will have to:
    SQS_URL="[Your-SQS-Queue-URL-here]"
    ```
 
-You have now completed the local setup and are ready to proceed to the AWS configuration.
+You have now completed the local setup and are now ready to proceed to the AWS configuration.
 
 ## AWS Setup
 1. Create an IAM user (instructions [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console))
