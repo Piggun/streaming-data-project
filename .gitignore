@@ -4,3 +4,5 @@ commands.bash
 response.json
 __pycache__
 .DS_Store
+.terraform*
+terraform.tfstate*
