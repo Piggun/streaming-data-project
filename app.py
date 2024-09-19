@@ -14,7 +14,7 @@ SQS_URL = os.getenv("SQS_URL")
 REQUEST_LIMIT = 50
 
 dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table("RequestCounter")
+table = dynamodb.Table("request-counter")
 
 
 def get_request_count():
