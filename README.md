@@ -82,6 +82,7 @@ To track the API usage:
      - And click on 'Explore table items'
 - **From the terminal**:
      - Run  `aws dynamodb get-item  --table-name [Your-table-name-here] --key '{"Date": {"S": "[The-date-to-track]"}}'`
+
        E.g. `aws dynamodb get-item  --table-name request-counter --key '{"Date": {"S": "2024-09-23"}}'`
      - More information can be found [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-3.html)
 
