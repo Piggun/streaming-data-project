@@ -67,12 +67,24 @@ python app.py --search_term "science" --reference "science_content" --date_from 
 To visualize the data:
 - **From the AWS Management Console** :
      - Go to AWS SQS
-     - Click on your queue
+     - Click on your queue ('the-guardian-articles' if created with provided Terraform plan)
      - Select 'Send and receive messages'
      - And click 'Poll for messages'
 - **From the terminal**:
      - Run `aws sqs receive-message --queue-url [Your-Queue-URL-here] --max-number-of-messages 10`
      - More information can be found [here](https://docs.aws.amazon.com/cli/latest/reference/sqs/receive-message.html)
+
+To track the API usage:
+- **From the AWS Management Console** :
+     - Go to AWS DynamoDB
+     - Click on 'tables'
+     - Select your table ('request-counter' if created with provided Terraform plan)
+     - And click on 'Explore table items'
+- **From the terminal**:
+     - Run  `aws dynamodb get-item  --table-name [Your-table-name-here] --key '{"Date": {"S": "[The-date-to-track]"}}'`
+       E.g. `aws dynamodb get-item  --table-name request-counter --key '{"Date": {"S": "2024-09-23"}}'`
+     - More information can be found [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-3.html)
+
 
 ## Makefile commands
 - `make run-unit-tests` : Runs unit-tests, checking that every function behaves correctly
