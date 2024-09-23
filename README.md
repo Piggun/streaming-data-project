@@ -16,7 +16,7 @@ Use the following instructions to correctly set up the environment in order to u
 2. Run `cd streaming-data-project` to move inside the repo's root folder
 3. Run `make create-environment` to create a virtual environment in which to install dependencies
 4. Run `source venv/bin/activate` to activate the created environment
-5. Run `make install-dependencies` to install the dependencies required by the application to be able to run
+5. Run `make install-dependencies` to install the dependencies required for the application to to run
 
 Once you have run the above commands you will have to:
 1. Create a new `.env` file
@@ -61,11 +61,11 @@ To visualize the data:
 - **From the AWS Management Console** :
      - Go to AWS SQS
      - Click on your queue
-     - Select 'Send and recieve messages'
+     - Select 'Send and receive messages'
      - And click 'Poll for messages'
 - **From the terminal**:
      - Run `aws sqs receive-message --queue-url [Your-Queue-URL-here] --max-number-of-messages 10`
-     - More informations can be found [here](https://docs.aws.amazon.com/cli/latest/reference/sqs/receive-message.html)
+     - More information can be found [here](https://docs.aws.amazon.com/cli/latest/reference/sqs/receive-message.html)
 
 ## Makefile commands
 - `make run-unit-tests` : Runs unit-tests, checking that every function behaves correctly
