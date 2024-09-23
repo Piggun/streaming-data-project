@@ -8,8 +8,15 @@ You will need:
 - To create an AWS Queue (instructions [here](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/creating-sqs-standard-queues.html))
 - To get an API Key for The Guardian API ([here](https://open-platform.theguardian.com/access/))
 
-**Optionally** you will need to create an Amazon DynamoDB table (instructions [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html)) in case you want to be able to track the API usage and limit its requests available per day.
+**Optionally** you can create an Amazon DynamoDB table (instructions [here](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/getting-started-step-1.html)) in case you want to be able to track the API usage and limit its requests available per day.
 &rarr; ***This is optional and it is <ins>NOT</ins> required, the application will work regardless.***
+
+**Alternatively** you can easily create an AWS Queue and DynamoDB using Terraform:
+1. Install Terraform (instructions [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli))
+2. Run `cd terraform` to move into Terraform's folder
+3. Run `terraform init` to initialise Terraform
+4. Run `terraform apply` to build the plan
+5. Enter `yes` when prompted and press Enter
 ## Local Setup
 Use the following instructions to correctly set up the environment in order to use the application.
 1. Run `git clone https://github.com/Piggun/streaming-data-project.git` in your terminal, to clone the repo at your desired location
