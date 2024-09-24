@@ -12,6 +12,8 @@ You will need:
 &rarr; ***This is optional and it is <ins>NOT</ins> required, the application will work regardless.***
 
 **Alternatively** you can easily create an AWS Queue and DynamoDB using Terraform:
+
+*Please bear in mind that you will first need to go through the [AWS Setup](#aws-setup) before running Terraform.*
 1. Install Terraform (instructions [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli))
 2. Run `cd terraform` to move into Terraform's folder
 3. Run `terraform init` to initialise Terraform
@@ -23,7 +25,7 @@ Use the following instructions to correctly set up the environment in order to u
 2. Run `cd streaming-data-project` to move inside the repo's root folder
 3. Run `make create-environment` to create a virtual environment in which to install dependencies
 4. Run `source venv/bin/activate` to activate the created environment
-5. Run `make install-dependencies` to install the dependencies required for the application to to run
+5. Run `make install-dependencies` to install the dependencies required for the application to run
 
 Once you have run the above commands you will have to:
 1. Create a new `.env` file
