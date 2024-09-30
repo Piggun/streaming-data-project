@@ -28,7 +28,7 @@ Use the following instructions to correctly set up the environment in order to u
 5. Run `make install-dependencies` to install the dependencies required for the application to run
 
 Once you have run the above commands you will have to:
-1. Create a new `.env` file
+1. Create a new `.env` file in the root folder
 2. Populate the `.env` file with your The Guardian API Key and your SQS Queue URL like so ( please replace the items in brackets [ ] ):
 
    ```
@@ -69,7 +69,7 @@ python app.py --search_term "science" --reference "science_content" --date_from 
 To visualize the data:
 - **From the AWS Management Console** :
      - Go to AWS SQS
-     - Click on your queue ('the-guardian-articles' if created with provided Terraform plan)
+     - Click on your queue ('the-guardian-articles' if created with the provided Terraform plan)
      - Select 'Send and receive messages'
      - And click 'Poll for messages'
 - **From the terminal**:
@@ -80,7 +80,7 @@ To track the API usage:
 - **From the AWS Management Console** :
      - Go to AWS DynamoDB
      - Click on 'tables'
-     - Select your table ('request-counter' if created with provided Terraform plan)
+     - Select your table ('request-counter' if created with the provided Terraform plan)
      - And click on 'Explore table items'
 - **From the terminal**:
      - Run  `aws dynamodb get-item  --table-name [Your-table-name-here] --key '{"Date": {"S": "[The-date-to-track]"}}'`
