@@ -1,7 +1,8 @@
 # Streaming Data Project
 ## Overview
 This application's purpose is to retrieve articles from [The Guardian API](https://open-platform.theguardian.com/) and publish them to a message broker ([AWS SQS](https://aws.amazon.com/sqs/) in this case)
-so that they can be consumed and analysed by other applications.
+so that they can be consumed and analysed by other applications.\
+The application accepts a search term (e.g. "science"), a reference to the message broker, and an optional "date_from" field. It uses the search terms to search for articles in The Guardian API and then posts details of up to ten hits to the message broker.
 ## Prerequisites
 You will need:
 - An AWS account ([here](https://aws.amazon.com/free/?trk=ce1f55b8-6da8-4aa2-af36-3f11e9a449ae&sc_channel=ps&ef_id=CjwKCAjw0aS3BhA3EiwAKaD2Zd4eSzqJyvnPssM2UByAVeg_mrGNPxuC6PxNBQSVbrT5euOhsaoMGBoCat4QAvD_BwE:G:s&s_kwcid=AL!4422!3!433803620870!e!!g!!aws%20account!9762827897!98496538463&gbraid=0AAAAADjHtp8btQnqCl1DlNkqa2lS_phD1&gclid=CjwKCAjw0aS3BhA3EiwAKaD2Zd4eSzqJyvnPssM2UByAVeg_mrGNPxuC6PxNBQSVbrT5euOhsaoMGBoCat4QAvD_BwE&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all))
