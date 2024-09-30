@@ -198,7 +198,7 @@ if __name__ == "__main__":
         " publish them to AWS SQS."
     )
 
-    # Add arguments for search_term, date_from, and stream_name
+    # Add arguments for search_term, reference, and date_from
     parser.add_argument(
         "--search_term",
         type=str,
